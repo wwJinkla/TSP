@@ -18,3 +18,5 @@ for (dirpath, dirnames, filenames) in os.walk(os.getcwd()):
     for f in filenames:
         if f[-3:] == "txt":
             print "Reading file: " + f
+
+#Commit test from GKH
