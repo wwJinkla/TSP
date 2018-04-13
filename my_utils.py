@@ -11,6 +11,15 @@ Instructions:
 script_dir is the dicrectory of this script (my_utils.py). It is assumed that this scrpit is stored in a folder A 
 which contains another folder B that contains the input txt files (for me, the folder B is called 'TSP')  
 
+For any input txt file, it has the following format:
+
+n m //# of nodes and # of edges
+end1 end2 weight // for edge(0)
+...
+end1 end2 weight // for edge(m-1)
+
+There is a also potentially a number at the last line of the file indicating the opitmal value of the TSP tour.
+
 """
 
 script_dir = os.path.dirname(__file__)
@@ -49,7 +58,7 @@ def get_single_data(fname):
 	'''
 	This function gets the entries in the file fname
 	Input: 
-		fname:  string. Name of the file, e.g. 'st70.txt'
+		fname: string. Name of the file, e.g. 'st70.txt'
 	Output: 
 		data: a list of lists. 
 			data[0] gives [#nodes #edges]
@@ -83,11 +92,12 @@ def make_graph(data):
 		data: a list of lists. 
 			data[0] gives [#nodes #edges]
 			data[1:] gives [node1 node2 weight]
-			data[-1] potentially gives the minimum weight if provided in the file
+			data[-1] potentially gives the minimum weight (if provided)
 	Output: 
 		graph: defaultdict.
-			Represnet the graph in the following way: {u {v : weight}}. By setting the default factory, if the edege
-			(u,v) does not exist, graph[u][v] returns float("inf").
+			Represnet the graph in the following way: graph[u][v] = (weight, edge_index), where weight is the weight
+			of edge (u,v), and edge_index is the index of edge (u,v) according to the input txt file.  
+			By setting the default factory, if the edege (u,v) does not exist, graph[u][v] returns float("inf").
 		optimal: float.
 			the minimum weight provided by the input file
 	'''
@@ -95,6 +105,7 @@ def make_graph(data):
 	graph = defaultdict(lambda:edges)
 	optimal = None
 
+	edge_index = 0
 	for item in data:
 		if len(item) ==1:
 			optimal = item[0] # minimum weight
@@ -109,16 +120,21 @@ def make_graph(data):
 			if v not in graph:
 				graph[v] = defaultdict(lambda:float("inf"))
 			# symmetric TSP
-			graph[u][v] = item[2]
-			graph[v][u] = item[2]
+			graph[u][v] = item[2], edge_index
+			graph[v][u] = item[2], edge_index
+		edge_index += 1
 
 	return graph, optimal
 
 
-# # Testing get_single_data and make_graph
-# myTest_1 = get_single_data('st70.txt')
-# print(myTest_1)
-# test_graph_1 = make_graph(myTest_1)
-# print(test_graph_1[0][58][64])
-# print(test_graph_1[1])
+# Testing get_single_data and make_graph
+myTest_1 = get_single_data('st70.txt')
+print myTest_1
+test_graph_1 = make_graph(myTest_1)[0]
+
+print("weight of edge (3,1):", test_graph_1[3][1][1])
+print("index of edge (3,1):", test_graph_1[3][1][0])
+
+
+
 
