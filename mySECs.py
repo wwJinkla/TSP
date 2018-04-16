@@ -36,12 +36,19 @@ def SECs(x,G_inv):
 
 	SECs = []
 
-	# Generate SECs if the weight of the min cut is smaller than 2 
+	# Generate SEC if the weight of the min cut is smaller than 2 
 	if min_w < 2:
 		for u in min_cut:
 			for v in inducedg:
 				if v not in min_cut:
 					SECs.append(inducedg[u][v][1])
+
+	# Do not generate SEC if the cut is either empty or the entire graph
+	if min_cut = []:
+		SECs = []
+
+	if set(min_cut) == set(G_inv.keys()):
+		SECs = []
 
 	return SECs
 
