@@ -53,6 +53,7 @@ def SECs(x,G_inv):
 
 	
 	return SECs
+	
 
 def MinCutPhase(G,a):
 	"""
@@ -158,12 +159,10 @@ def mergeVertices(G,u,v):
 	u_neighbors = G[u].copy()	# e.g. G[u][n] = (w, idx), where w is the weight of (u,n), and idx is the edge index of (u,n)
 	v_neighbors = G[v].copy()	# Note that we takes shallow copy, becuase G will be modified (merging nodes)
 
-	#print("u_neighbors", u_neighbors)
-	#print("v_neighbors", v_neighbors)
 
 	# find out the common neighbors of u and v
 	common_neighbors = [n for n in u_neighbors.keys() if n in v_neighbors.keys()]
-	#print("common_neighbors", common_neighbors)
+
 	
 	# delete u,v as neighbors of other nodes
 	del u_neighbors[v]	# we do not want to iterate over u and v
@@ -176,7 +175,6 @@ def mergeVertices(G,u,v):
 	# delete u,v themselves		
 	del G[u]
 	del G[v]
-	# print("after deletion", G)
 
 	# convert u or v into frozenset if u or v is integer
 	if type(u) == int:
@@ -243,18 +241,20 @@ def MinCut(G,a):
 
 	return min_cut, min_w
 
-# Unit test for MinCut
+# # Unit test for MinCut
 # print MinCut(graph_0,2)
 
-data_1 = all_data['WeiTest.txt']
-graph_1 = my_utils.make_graph(data_1)[0]
-print("Wei's test",  graph_1)
-print("Min cut:", MinCut(graph_1,1))
+# # More Unit test for Min Cut
+# data_1 = all_data['WeiTest.txt']
+# graph_1 = my_utils.make_graph(data_1)[0]
+# print("Wei's test",  graph_1)
+# print("Min cut:", MinCut(graph_1,1))
 
-g_inv_1 =  my_utils.make_graph(data_1)[1]
-x = [0,1.0/2,1,1.0/3,1.0/4,1]
-graph_2 = my_utils.vector2graph(g_inv_1,x)
+# # Unit test for SECs
+# g_inv_1 =  my_utils.make_graph(data_1)[1]
+# x = [0,1.0/2,1,1.0/3,1.0/4,1]
+# graph_2 = my_utils.vector2graph(g_inv_1,x)
 
-print("fractional Wei's test")
-print("Min cut:", MinCut(graph_2,0)) 
-print("SECs", SECs(x,g_inv_1))
+# print("fractional Wei's test")
+# print("Min cut:", MinCut(graph_2,0)) 
+# print("SECs", SECs(x,g_inv_1))
