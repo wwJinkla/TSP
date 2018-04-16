@@ -36,12 +36,8 @@ def SECs(x,G_inv):
 
 	SECs = []
 
-<<<<<<< HEAD
-	# Generate SEC if the weight of the min cut is smaller than 2 
-=======
 
 	# Generate SECs if the weight of the min cut is smaller than 2 
->>>>>>> Wei
 	if min_w < 2:
 		for u in min_cut:
 			for v in inducedg:
@@ -49,20 +45,13 @@ def SECs(x,G_inv):
 					SECs.append(inducedg[u][v][1])
 
 	# Do not generate SEC if the cut is either empty or the entire graph
-<<<<<<< HEAD
-	if min_cut = []:
-=======
 	if min_cut == []:
->>>>>>> Wei
 		SECs = []
 
 	if set(min_cut) == set(G_inv.keys()):
 		SECs = []
 
-<<<<<<< HEAD
-=======
 	
->>>>>>> Wei
 	return SECs
 
 def MinCutPhase(G,a):
