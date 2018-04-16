@@ -1,5 +1,7 @@
 import os
 from collections import defaultdict
+from gurobipy import *
+
 
 # ww17
 # 04/11/2018
@@ -114,11 +116,91 @@ def make_graph(data):
 
 	return graph, optimal
 
-
 # # Testing get_single_data and make_graph
 # myTest_1 = get_single_data('st70.txt')
 # print(myTest_1)
 # test_graph_1 = make_graph(myTest_1)
 # print(test_graph_1[0][58][64])
 # print(test_graph_1[1])
+
+
+
+#Solve an LP relaxation of TSP
+#Input: 
+#		x0: vector of all edges in graph, with 1s corresponding to visited edges, 0s elsewhere
+#		weights: costs associated with each edge 
+#Output:
+#		x_star: 
+def initialize_tsp_lp(x0, weights):
+
+
+try:
+
+	#Create LP model
+	tsp_lp = Model("tsp_lp")
+
+	n = sum(x0) * 2 # number of nodes in tour
+	m = sum(x0) #number of edges in tour
+	x_star = np.zeros(x0.shape) #initialize solution
+
+	x = tsp_lp.addVars(n, m, vtype=GRB.BINARY)
+
+	tsp_lp.setObjective()
+
+	m.addConstraint()
+
+	m.optimize()
+
+	if tsp_lp.status == GRB.Status.INF_OR_UNBD:
+	    # Turn presolve off to determine whether model is infeasible
+	    # or unbounded
+	    tsp_lp.setParam(GRB.Param.Presolve, 0)
+	    tsp_lp.optimize()
+
+	if tsp_lp.status == GRB.Status.OPTIMAL:
+	    print('Optimal objective: %g' % model.objVal)
+	    model.write('model.sol')
+	    exit(0)
+	elif tsp_lpq.status != GRB.Status.INFEASIBLE:
+	    print('Optimization was stopped with status %d' % model.status)
+	    exit(0)
+
+
+	print x
+
+# 	variables = tsp_lp.addVars(x0, )
+
+# 	#
+# 	for i in range(I):
+#     	for k in range(len(rangevalue)):
+#         	t = E[i]
+#         	y[i+1, rangevalue[k] - t] = m.addVar(vtype=GRB.BINARY, name="y%s" % str([i+1, rangevalue[k] - t]))
+# m.update()        
+#y       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

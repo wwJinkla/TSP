@@ -11,7 +11,8 @@ import sys
 import time
 import numpy as np
 from collections import deque
-
+import my_utils.*
+import myNN
 import gurobipy as gurobi
 
 start = time.time()
@@ -19,10 +20,11 @@ start = time.time()
 #TODO:  parse input data.
 
 #TODO:  create graph data-structures.
-g = Graph....
+input_data = get_single_data('berlin52.txt')
+g = make_graph(input_data)
 
 #TODO: get upper bound from heuristics
-upper_bound = ...
+(visited, upper_bound) = myNN(input_data)
 
 #TODO: decide where to place the "initialize" 
 # function (as a utility?) and what inputs we
