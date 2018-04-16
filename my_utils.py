@@ -152,7 +152,7 @@ def initialize_tsp_lp(graph, graph_inv, optimal, n, m):
 	#		x_star: 
 
 	#Create LP model
-	tsp_lp = Model("tsp_lp")
+	tsp_lp = gurobipy.Model("tsp_lp")
 
 	c_min = -1 #minimal cost associated wit this LP relaxation
 
@@ -160,12 +160,27 @@ def initialize_tsp_lp(graph, graph_inv, optimal, n, m):
 
 	# n = graph[3] #Number of nodes in graph
 
+   for u in range (0, m):
+        constr_edges = []
+        for v in range (0, m):
+            twople_w_index = null
+            if v < u:
+                twople_w_index = graph[v][u]
+            elif v > u:      
+                twople_w_index = graph[u][v]
+            if twople_w_index:
+                constr_edges.append(twople_w_index[1])
+        tsp_lp.addConstr( 
+            sum(1*x[i] for i in constr_edges) == 2 
+        )
+     
 	# m = graph[4] #Number of edges in graph
 	
 	weights = graph_inv.values()
 	weights = [x[0] for x in weights]
 
 	x = tsp_lp.addVars(m, lb=0.0, ub=1.0, vtype=GRB.CONTINUOUS, name="x")
+    tsp_lp.update()
 
 	# for edge in graph_inv:
 	# 	weights[edge] = graph_inv[edge][0]
