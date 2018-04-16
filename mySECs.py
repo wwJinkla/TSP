@@ -8,11 +8,15 @@ import numpy as np
 # by https://fktpm.ru/file/204-stoer-wagner-a-simple-min-cut-algorithm.pdf
 
 
-# Get the test graph 
-# all_data = my_utils.get_all_data()
-# data_0 = all_data['MinCutTest.txt']
-# graph_0 = my_utils.make_graph(data_0)[0]
-# print("test graph came from the paper",  graph_0)
+#Get the test graph 
+all_data = my_utils.get_all_data()
+data_0 = all_data['ulysses22.txt']
+graph_0 = my_utils.make_graph(data_0)[0]
+#graph_inv_0 = my_utils.make_graph(data_0)[1]
+#print len(graph_inv_0)
+#print("test graph came from the paper",  graph_0)
+
+
 # print 'test0:', myNN(data_0)
 
 
@@ -31,8 +35,12 @@ def SECs(x,G_inv):
 	inducedg = my_utils.vector2graph(G_inv,x)
 	
 	# find the minimum cut on the induced graph
+
+
 	a = np.random.randint(len(inducedg))
 	min_cut, min_w = MinCut(inducedg,a)
+
+
 
 	SECs = []
 
@@ -73,7 +81,13 @@ def MinCutPhase(G,a):
 	while flag == 0:
 		# find the mostly connected vertex to A
 		v = mostlyConnected(G,A)
+		print('v',v)
+		if v == None:
+			break
 		A.append(v)
+		print('A',A)
+
+		
 		if set(A) == set(V):
 			flag = 1
 
@@ -81,7 +95,8 @@ def MinCutPhase(G,a):
 	# cut the last added node from the rest of the graph. Note that this node could be either an integer representing
 	# a single node, or it could be a frozenset that represents a set of nodes.
 	cut_node = A[-1]
-
+	print('G', G)
+	print cut_node
 	# compute the cut weight
 	w = 0
 	for n in G[cut_node]:
@@ -120,12 +135,13 @@ def mostlyConnected(G, A):
 
 	"""
 
-	sum_weight = 0
+	sum_weight = -1
 	mc_v = None
 
 	# search for the mostly connected node in G/A to A
 	for v in G:
 		w = 0
+		#print v
 		if v not in A:
 			for u in A:
 				if u in G[v]:
@@ -136,9 +152,11 @@ def mostlyConnected(G, A):
 
 	return mc_v
 
+
 # # Unit test for mostlyConnected
-# A1 = [2]
-# print mostlyConnected(graph_0,A1)
+#A1 = [19, 18, 20, 9, 8, 10, 4, 14, 5, 6, 11, 12, 13]
+
+# print("mostly connected", mostlyConnected(graph_0,A1))
 
 
 def mergeVertices(G,u,v):
@@ -166,13 +184,14 @@ def mergeVertices(G,u,v):
 	#print("common_neighbors", common_neighbors)
 	
 	# delete u,v as neighbors of other nodes
-	del u_neighbors[v]	# we do not want to iterate over u and v
-	del v_neighbors[u]
+
 	for node in u_neighbors:
 		del G[node][u]
 	for node in v_neighbors:
 		del G[node][v]
 
+	del u_neighbors[v]	# we do not want to iterate over u and v
+	del v_neighbors[u]
 	# delete u,v themselves		
 	del G[u]
 	del G[v]
@@ -230,6 +249,8 @@ def MinCut(G,a):
 	# make a shallow copy of G so that G does not change
 	GG = G.copy()
 
+
+
 	# perform MinCutPhase
 	flag = 0
 	while flag == 0:
@@ -240,6 +261,7 @@ def MinCut(G,a):
 
 		if len(GG) <= 1:
 			flag = 1
+
 
 	return min_cut, min_w
 

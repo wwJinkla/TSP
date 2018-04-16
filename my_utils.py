@@ -42,15 +42,15 @@ def get_all_data():
 	    for fname in filenames:
 	    	if fname[-3:] == "txt":
 				print "Reading file: " + fname
-	    	current_txt = []
-	    	f = open(fname,"r")
-	    	f1 = f.readlines()
-	    	for line in f1:
-	    		line = line.split()
-	    		if line:
-	    			line = [int(i) for i in line]
-	    			current_txt.append(line)
-	    	all_files[fname] = current_txt
+				current_txt = []
+				f = open(fname,"r")
+				f1 = f.readlines()
+				for line in f1:
+					line = line.split()
+					if line:
+						line = [int(i) for i in line]
+						current_txt.append(line)
+				all_files[fname] = current_txt
 
 	return all_files
 

@@ -22,8 +22,10 @@ import mySECs
 
 start = time.time()
 
+
+
 #get input
-input_data = get_single_data('st70.txt')
+input_data = get_single_data('ulysses22.txt')
 
 #create graph data-structures
 (g, g_inv, optimal, n, m) = make_graph(input_data)
@@ -35,6 +37,8 @@ input_data = get_single_data('st70.txt')
 
 #initialize the lp
 tsp_lp = initialize_tsp_lp(g, g_inv, optimal, n, m)
+
+
 
 x_best = np.zeros(m)
 
@@ -72,11 +76,12 @@ while True:
     lb_for_sub_lp = np.zeros(m)
     ub_for_sub_lp = np.zeros(m)
 
+
     for constraint in sub_lp:
+    	if len(constraint) == 0:
+    		break
         #constraint[0] is the index, constraint[1] is the prescribed value
         #we want to create two vectors and then update the model
-        if sub_lp:
-        	continue
         if constraint[1] == 0:       	
             x[constraint[0]].ub = 0
         elif constraint[1] == 1:
@@ -91,8 +96,13 @@ while True:
     # tsp_lp.setAttr("lb", lb_for_sub_lp)
     # tsp_lp.setAttr("ub", ub_for_sub_lp)
     
+    
+    
     tsp_lp.update()
     tsp_lp.optimize()
+
+
+    
 
     #tsp_lp is now an updated lp at our node that we're considering.
     #we want its objective value.
@@ -105,6 +115,7 @@ while True:
         while True:
             #try to find a cut from the cut factory 
             cut_edges = mySECs.SECs(tsp_lp.X, g_inv)
+            print('cut_edges:', cut_edges) 
             if cut_edges:
                 new_constr = tsp_lp.addConstr(
                     sum(1*x[i] for i in cut_edges) >= 2
