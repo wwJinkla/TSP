@@ -15,6 +15,9 @@ import my_utils.*
 import myNN
 import gurobipy as gurobi
 
+import mySECs
+
+
 start = time.time()
 
 #TODO:  parse input data.
@@ -46,36 +49,60 @@ while True:
     Solve again.
     Clear out the cuts from the model.
     """
-    #reset x to its original characteristics (clear the upper and lower bounds)
+    #retrieve list of variables in the model
     x = tsp_lp.getVars()
     #bring in the 0-1 constraints.
-    #TODO: use addConstr to put the constraints stored in sub_lp into tsp_lp
+    #these are actually introduced as boundaries rather than constraints.
+    #they are stored in sub_lp, and here, we introduce them to tsp_lp.
+    
+    lb_for_sub_lp = 0.0
+    ub_for_sub_lp = 1.0
+
     for constraint in sub_lp:
-        tsp_lp.addConstr(       )
+        #constraint[0] is the index, constraint[1] is the prescribed value
+        #we want to create two vectors and then update the model
+        if constraint[1] == 0
+            ub_for_sub_lp[constraint[0]] = 0.0
+        elif constraint[1] == 1
+            lb_for_sub_lp[constraint[0]] = 1.0
+    tsp_lp.setAttr("LB", lb_for_sub_lp)
+    tsp_lp.setAttr("UB", ub_for_sub_lp)
     tsp_lp.update()
     tsp_lp.optimize()
 
     #tsp_lp is now an updated lp at our node that we're considering.
     #we want its objective value.
     obj_val = tsp_lp.ObjVal
+    constraint_binder = []
 
     if obj_val > upper_bound: 
         node_status = 'prune'
     else:
         while True:
-            #try to find cuts from the cut_factory 
-            if cuts:
-                addConstr, update, optimize, continue
-        if x is integral
+            #try to find a cut from the cut factory 
+            cut_edges = mySECs.SECs(x, G_inv)
+            if cut_edges:
+                new_constr = tsp_lp.addConstr(
+                    sum(1*x[i] for i in cut_edges) <= 2
+                )
+                constraint_binder.append(new_constr)
+                tsp_lp.update()
+                tsp_lp.optimize()
+            else 
+                break
+        
+        intstatus = 0
+        for i in range(len(tsp_lp.X))
+            intstatus += np.isclose([tsp_lp.X[i]], [0])[0] + np.isclose([tsp_lp.X[i]], [1])[0]
+        if intstatus == len(tsp_lp.X) 
             node_status = 'integral'
         else 
             node_status = 'branch'
             
-        
     x = tsp_lp.X
     obj = tsp_lp.ObjVal
 
-    tsp_lp.remove(cuts that we added)
+    tsp_lp.remove(constraint_binder)
     tsp_lp.update()
 
     """
@@ -86,13 +113,18 @@ while True:
     """
 
     if node_status == 'integral'
-        upper_bound = obj
-        x_best = x
-    elif node_status == 'prune'
-        continue
+        if obj <= upper_bound
+            upper_bound = obj   
+            x_best = x
     elif node_status == 'branch'
-        #TODO: put two subproblems in the queue. Each new subproblem 
-        will have all the boundary constraints of its parent, plus the new boundary constraints.
+        #Put two subproblems in the queue. We use the index that's closest to 0.5. 
+        arr = np.abs(x - 0.5)
+        index_for_split = arr.argmin()
+        zero_branch = sub_lp + [index_for_split, 0] 
+        one_branch = sub_lp + [index_for_split, 1] 
+        #Each new subprob will have all the boundary constraints of its parent, plus the new boundary constraint.
+        subprob_queue.extend([zero_branch, one_branch])
+
         
     if not sub_problem_queue 
         break
