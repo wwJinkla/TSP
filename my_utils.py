@@ -131,13 +131,13 @@ def make_graph(data):
 #		weights: costs associated with each edge 
 #Output:
 #		x_star: 
-def initialize_tsp_lp(x0, weights):
+def initialize_tsp_lp(x0, weight):
 
 
 try:
 
 	#Create LP model
-	tsp_lp = Model("tsp_lp")
+	tsp_lp = gurobipy.Model("tsp_lp")
 
 	n = sum(x0) * 2 # number of nodes in tour
 	m = sum(x0) #number of edges in tour
@@ -147,9 +147,22 @@ try:
 
 	tsp_lp.setObjective()
 
-	m.addConstraint()
+   for u in range (0, m):
+        constr_edges = []
+        for v in range (0, m):
+            twople_w_index = null
+            if v < u:
+                twople_w_index = graph[v][u]
+            elif v > u:      
+                twople_w_index = graph[u][v]
+            if twople_w_index:
+                constr_edges.append(twople_w_index[1])
+        tsp_lp.addConstr( 
+            sum(1*x[i] for i in constr_edges) == 2 
+        )
+     
 
-	m.optimize()
+    tsp_lp.update()
 
 	if tsp_lp.status == GRB.Status.INF_OR_UNBD:
 	    # Turn presolve off to determine whether model is infeasible
