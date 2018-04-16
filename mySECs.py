@@ -9,10 +9,10 @@ import numpy as np
 
 
 # Get the test graph 
-all_data = my_utils.get_all_data()
-data_0 = all_data['MinCutTest.txt']
-graph_0 = my_utils.make_graph(data_0)[0]
-print("test graph came from the paper",  graph_0)
+# all_data = my_utils.get_all_data()
+# data_0 = all_data['MinCutTest.txt']
+# graph_0 = my_utils.make_graph(data_0)[0]
+# print("test graph came from the paper",  graph_0)
 # print 'test0:', myNN(data_0)
 
 
@@ -246,15 +246,15 @@ def MinCut(G,a):
 # Unit test for MinCut
 # print MinCut(graph_0,2)
 
-data_1 = all_data['WeiTest.txt']
-graph_1 = my_utils.make_graph(data_1)[0]
-print("Wei's test",  graph_1)
-print("Min cut:", MinCut(graph_1,1))
+# data_1 = all_data['WeiTest.txt']
+# graph_1 = my_utils.make_graph(data_1)[0]
+# print("Wei's test",  graph_1)
+# print("Min cut:", MinCut(graph_1,1))
 
-g_inv_1 =  my_utils.make_graph(data_1)[1]
-x = [0,1.0/2,1,1.0/3,1.0/4,1]
-graph_2 = my_utils.vector2graph(g_inv_1,x)
+# g_inv_1 =  my_utils.make_graph(data_1)[1]
+# x = [0,1.0/2,1,1.0/3,1.0/4,1]
+# graph_2 = my_utils.vector2graph(g_inv_1,x)
 
-print("fractional Wei's test")
-print("Min cut:", MinCut(graph_2,0)) 
-print("SECs", SECs(x,g_inv_1))
+# print("fractional Wei's test")
+# print("Min cut:", MinCut(graph_2,0)) 
+# print("SECs", SECs(x,g_inv_1))

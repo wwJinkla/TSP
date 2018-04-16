@@ -11,8 +11,11 @@ import sys
 import time
 import numpy as np
 from collections import deque
+from gurobipy import *
 
-import my_utils
+sys.path.insert(0, '/Users/gabrielhead/src/CAAM_571')
+from my_utils import *
+
 import myNN
 import mySECs
 
@@ -20,18 +23,31 @@ import mySECs
 start = time.time()
 
 #get input
-input_data = get_single_data('berlin52.txt')
+input_data = get_single_data('st70.txt')
 
 #create graph data-structures
-g = make_graph(input_data)
+(g, g_inv, optimal, n, m) = make_graph(input_data)
 
 #get upper bound from heuristics
-(visited, upper_bound) = myNN(input_data)
+(visited, upper_bound) = myNN.myNN(g)
+
+
 
 #initialize the lp
-tsp_lp = initialize_tsp_lp(...)
+tsp_lp = initialize_tsp_lp(g, g_inv, optimal, n, m)
 
-x_best = None
+x_best = np.zeros(m)
+
+
+
+for i in range(len(visited) - 1):
+    index = g[visited[i]][visited[i+1]][1]
+    x_best[index] = 1
+
+
+
+# index = g[len(visited)-1][0]
+# x_best[index] = 1
 
 #this queue stores the upper and lower bounds of each variable. 
 subprob_queue = deque([[[]]])
@@ -53,18 +69,28 @@ while True:
     #these are actually introduced as boundaries rather than constraints.
     #they are stored in sub_lp, and here, we introduce them to tsp_lp.
     
-    lb_for_sub_lp = 0.0
-    ub_for_sub_lp = 1.0
+    lb_for_sub_lp = np.zeros(m)
+    ub_for_sub_lp = np.zeros(m)
 
     for constraint in sub_lp:
         #constraint[0] is the index, constraint[1] is the prescribed value
         #we want to create two vectors and then update the model
-        if constraint[1] == 0
-            ub_for_sub_lp[constraint[0]] = 0.0
-        elif constraint[1] == 1
-            lb_for_sub_lp[constraint[0]] = 1.0
-    tsp_lp.setAttr("LB", lb_for_sub_lp)
-    tsp_lp.setAttr("UB", ub_for_sub_lp)
+        if sub_lp:
+        	continue
+        if constraint[1] == 0:       	
+            x[constraint[0]].ub = 0
+        elif constraint[1] == 1:
+            x[constraint[0]].lb = 1
+
+
+    # for v in tsp_lp.getVars()[lb_for_sub_lp]:
+    # 	v.lb = 1
+    # for v in tsp_lp.getVars()[ub_for_sub_lp]:
+    # 	v.ub = 0
+
+    # tsp_lp.setAttr("lb", lb_for_sub_lp)
+    # tsp_lp.setAttr("ub", ub_for_sub_lp)
+    
     tsp_lp.update()
     tsp_lp.optimize()
 
@@ -78,24 +104,35 @@ while True:
     else:
         while True:
             #try to find a cut from the cut factory 
-            cut_edges = mySECs.SECs(x, G_inv)
+            cut_edges = mySECs.SECs(tsp_lp.X, g_inv)
             if cut_edges:
                 new_constr = tsp_lp.addConstr(
-                    sum(1*x[i] for i in cut_edges) <= 2
+                    sum(1*x[i] for i in cut_edges) >= 2
                 )
                 constraint_binder.append(new_constr)
                 tsp_lp.update()
                 tsp_lp.optimize()
-            else 
+            else:
                 break
         
         intstatus = 0
-        for i in range(len(tsp_lp.X))
-            intstatus += np.isclose([tsp_lp.X[i]], [0])[0] + np.isclose([tsp_lp.X[i]], [1])[0]
-        if intstatus == len(tsp_lp.X) 
+        zero_test = np.zeros(len(tsp_lp.X))
+        ones_test = np.ones(len(tsp_lp.X))
+        intstatus = np.zeros(len(tsp_lp.X))
+
+        intstatus = np.isclose(tsp_lp.X, zero_test) + np.isclose(tsp_lp.X, ones_test)
+        if sum(intstatus) == len(tsp_lp.X):
             node_status = 'integral'
-        else 
+        else:
             node_status = 'branch'
+
+
+        # for i in range(len(tsp_lp.X)):
+        #     intstatus += (np.isclose([tsp_lp.X[i]], [0])[0] + np.isclose([tsp_lp.X[i]], [1])[0])
+        # if intstatus == len(tsp_lp.X):
+        #     node_status = 'integral'
+        # else 
+        #     node_status = 'branch'
             
     x = tsp_lp.X
     obj = tsp_lp.ObjVal
@@ -110,11 +147,11 @@ while True:
     branch: we have a non-integral solution with no subtours. Add two subproblems to the queue.
     """
 
-    if node_status == 'integral'
-        if obj <= upper_bound
+    if node_status == 'integral':
+        if obj <= upper_bound:
             upper_bound = obj   
             x_best = x
-    elif node_status == 'branch'
+    elif node_status == 'branch':
         #Put two subproblems in the queue. We use the index that's closest to 0.5. 
         arr = np.abs(x - 0.5)
         index_for_split = arr.argmin()
@@ -124,11 +161,12 @@ while True:
         subprob_queue.extend([zero_branch, one_branch])
 
         
-    if not sub_problem_queue 
+    if not subprob_queue:
         break
 
 # TODO: print outputs
 
+print tsp_lp.X
 
 end = time.time()
 print('\nTime = {} seconds'.format(end - start))
