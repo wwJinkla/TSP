@@ -31,12 +31,17 @@ def SECs(x,G_inv):
 	inducedg = my_utils.vector2graph(G_inv,x)
 	
 	# find the minimum cut on the induced graph
-	a = np.random.randint(len(x))
+	a = np.random.randint(len(inducedg))
 	min_cut, min_w = MinCut(inducedg,a)
 
 	SECs = []
 
+<<<<<<< HEAD
 	# Generate SEC if the weight of the min cut is smaller than 2 
+=======
+
+	# Generate SECs if the weight of the min cut is smaller than 2 
+>>>>>>> Wei
 	if min_w < 2:
 		for u in min_cut:
 			for v in inducedg:
@@ -44,12 +49,20 @@ def SECs(x,G_inv):
 					SECs.append(inducedg[u][v][1])
 
 	# Do not generate SEC if the cut is either empty or the entire graph
+<<<<<<< HEAD
 	if min_cut = []:
+=======
+	if min_cut == []:
+>>>>>>> Wei
 		SECs = []
 
 	if set(min_cut) == set(G_inv.keys()):
 		SECs = []
 
+<<<<<<< HEAD
+=======
+	
+>>>>>>> Wei
 	return SECs
 
 def MinCutPhase(G,a):
@@ -242,4 +255,17 @@ def MinCut(G,a):
 	return min_cut, min_w
 
 # Unit test for MinCut
-print MinCut(graph_0,2)
+# print MinCut(graph_0,2)
+
+data_1 = all_data['WeiTest.txt']
+graph_1 = my_utils.make_graph(data_1)[0]
+print("Wei's test",  graph_1)
+print("Min cut:", MinCut(graph_1,1))
+
+g_inv_1 =  my_utils.make_graph(data_1)[1]
+x = [0,1.0/2,1,1.0/3,1.0/4,1]
+graph_2 = my_utils.vector2graph(g_inv_1,x)
+
+print("fractional Wei's test")
+print("Min cut:", MinCut(graph_2,0)) 
+print("SECs", SECs(x,g_inv_1))
