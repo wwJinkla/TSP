@@ -12,27 +12,27 @@ import time
 import numpy as np
 from collections import deque
 
-import gurobipy as gurobi
-
+import my_utils
+import myNN
 import mySECs
 
 
 start = time.time()
 
-#TODO:  parse input data.
+#get input
+input_data = get_single_data('berlin52.txt')
 
-#TODO:  create graph data-structures.
-g = Graph....
+#create graph data-structures
+g = make_graph(input_data)
 
-#TODO: get upper bound from heuristics
-upper_bound = ...
+#get upper bound from heuristics
+(visited, upper_bound) = myNN(input_data)
 
-#TODO: decide where to place the "initialize" 
-# function (as a utility?) and what inputs we
-# call "initialize" with.
+#initialize the lp
 tsp_lp = initialize_tsp_lp(...)
 
 x_best = None
+
 #this queue stores the upper and lower bounds of each variable. 
 subprob_queue = deque([[[]]])
 obj = np.inf
@@ -41,10 +41,10 @@ while True:
     sub_lp = subprob_queue.popleft()
     
     """
-    We apply the constraints from sub_lp on top of init_lp. 
-    Solve the subproblem.
-    Look for cuts and apply them.
-    Solve again.
+    We apply the constraints from sub_lp to tsp_lp,
+    Solve the subproblem,
+    Look for cuts and apply them,
+    Solve again,
     Clear out the cuts from the model.
     """
     #retrieve list of variables in the model
