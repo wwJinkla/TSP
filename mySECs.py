@@ -36,26 +36,16 @@ def SECs(x,G_inv):
 	inducedg = my_utils.vector2graph(G_inv,x)
 	
 	# find the minimum cut on the induced graph
-
 	a = np.random.randint(len(inducedg))
 	min_cut, min_w = MinCut(inducedg,a)
 
 
-
 	SECs = []
-	#print('min cut', min_cut)
-	#print('min w', min_w)
-	#print('inducedg', inducedg)
-
-	#print('inducedg', inducedg)
 	# Generate SECs if the weight of the min cut is smaller than 2 
 	if min_w < 2:
 		for u in min_cut:
 			for v in inducedg:
 				if v not in min_cut:
-					#print('u',u)
-					#print('v',v)
-					#print('min_cut',min_cut)
 					SECs.append(inducedg[u][v][1])
 
 	# Do not generate SEC if the cut is either empty or the entire graph
@@ -94,10 +84,8 @@ def MinCutPhase(G,a):
 		if set(A) == set(V):
 			flag = 1
 
-
 	# cut the last added node from the rest of the graph. Note that this node could be either an integer representing
 	# a single node, or it could be a frozenset that represents a set of nodes.
-	#print A
 	cut_node = A[-1]
 
 	# compute the cut weight
@@ -113,6 +101,7 @@ def MinCutPhase(G,a):
 
 	# merge last two vertices
 	G = mergeVertices(G, A[-1], A[-2])
+
 	return G, w, cut
 
 # # Unit test for MinCutPhase
@@ -144,7 +133,6 @@ def mostlyConnected(G, A):
 	# search for the mostly connected node in G/A to A
 	for v in G:
 		w = 0
-		#print v
 		if v not in A:
 			for u in A:
 				if u in G[v]:
@@ -176,18 +164,14 @@ def mergeVertices(G,u,v):
 	"""
 
 	# Remeber the neighbors of u and v, along with the information about the edges. 
-	u_neighbors = G[u].copy()	# e.g. G[u][n] = (w, idx), where w is the weight of (u,n), and idx is the edge index of (u,n)
-	v_neighbors = G[v].copy()	# Note that we takes shallow copy, becuase G will be modified (merging nodes)
+	u_neighbors = copy.deepcopy(G[u])	# e.g. G[u][n] = (w, idx), where w is the weight of (u,n), and idx is the edge index of (u,n)
+	v_neighbors = copy.deepcopy(G[v])	# Note that we take deep copy, becuase G will be modified (merging nodes)
 
-	#print("u_neighbors", u_neighbors)
-	#print("v_neighbors", v_neighbors)
 
 	# find out the common neighbors of u and v
 	common_neighbors = [n for n in u_neighbors.keys() if n in v_neighbors.keys()]
-	#print("common_neighbors", common_neighbors)
 	
 	# delete u,v as neighbors of other nodes
-
 	for node in u_neighbors:
 		del G[node][u]
 	for node in v_neighbors:
@@ -198,7 +182,7 @@ def mergeVertices(G,u,v):
 	# delete u,v themselves		
 	del G[u]
 	del G[v]
-	# print("after deletion", G)
+	
 
 	# convert u or v into frozenset if u or v is integer
 	if type(u) == int:
@@ -249,7 +233,7 @@ def MinCut(G,a):
 	min_cut = []
 	min_w = float('inf')
 
-	# make a shallow copy of G so that G does not change
+	# make a deep copy of G so that G does not change
 	GG = copy.deepcopy(G)
 
 
