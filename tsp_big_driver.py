@@ -25,7 +25,7 @@ start = time.time()
 
 
 #get input
-input_data = get_single_data('st70.txt')
+input_data = get_single_data('att48.txt')
 
 #create graph data-structures
 (g, g_inv, optimal, n, m) = make_graph(input_data)
@@ -33,7 +33,7 @@ input_data = get_single_data('st70.txt')
 #get upper bound from heuristics
 (visited, upper_bound) = myNN.myNN(g)
 
-print upper_bound
+initial_upper_bound = upper_bound
 
 #initialize the lp
 tsp_lp = initialize_tsp_lp(g, g_inv, optimal, n, m)
@@ -47,18 +47,18 @@ for i in range(len(visited) - 1):
     x_best[index] = 1
 
 
-# index = g[len(visited)-1][0]
-# x_best[index] = 1
-
 #this queue stores the upper and lower bounds of each variable. 
 subprob_queue = deque([[[]]])
 branch_choice_list = []
 obj = np.inf
 sub_lp_parking = []
 fractional_parking = -1
+nodes_visited = []
+constraint_numbers = []
     
 while True:
     sub_lp = subprob_queue.popleft()
+    nodes_visited.append([sub_lp])
 
     """
     We apply the constraints from sub_lp to tsp_lp,
@@ -80,9 +80,7 @@ while True:
     lb_for_sub_lp = np.zeros(m)
     ub_for_sub_lp = np.zeros(m)
 
-    print sub_lp
     for constraint in sub_lp:
-    	print constraint
         if isinstance(constraint, float):
     		continue
         elif len(constraint) == 0:
@@ -90,17 +88,10 @@ while True:
         #constraint[0] is the index, constraint[1] is the prescribed value
         #we want to create two vectors and then update the model
         if constraint[1] == 0:
-            print('hello 0')       	
             x[constraint[0]].ub = 0.0
         elif constraint[1] == 1:
-            print('hello 1')       	
             x[constraint[0]].lb = 1.0
 
-            print constraint[0]
-            print x[constraint[0]].lb
-            print('hello 1 out')
-    print('HELLO!!!!!!!!!!!!')
-#    tsp_lp.setAttr('OutputFlag', True)
     
     tsp_lp.update()
 
@@ -108,21 +99,8 @@ while True:
     lboundlist.extend(x[i].lb for i in range(m))
     uboundlist = []
     uboundlist.extend(x[i].ub for i in range(m))
-  #  print lboundlist
-  #  print uboundlist
-
-#    tsp_lp.setAttr('OutputFlag', False)
-
-    # for v in tsp_lp.getVars()[lb_for_sub_lp]:
-    # 	v.lb = 1
-    # for v in tsp_lp.getVars()[ub_for_sub_lp]:
-    # 	v.ub = 0
-
-    # tsp_lp.setAttr("lb", lb_for_sub_lp)
-    # tsp_lp.setAttr("ub", ub_for_sub_lp)
-    
-    
-    
+     
+       
     tsp_lp.optimize()
 
     sub_lp[0] = tsp_lp.ObjVal    
@@ -133,7 +111,7 @@ while True:
         x_try = np.abs(x_try)
         fractional = sum(x_try)
         #the lower this sum, the more attractive the subproblem is.
-        print sub_lp[-1]
+
         if sub_lp[-1][1] == 0:
             sub_lp_parking = sub_lp
             fractional_parking = fractional
@@ -166,7 +144,6 @@ while True:
                 #try to find a cut from the cut factory 
                 cut_edges = mySECs.SECs(tsp_lp.X, g_inv)
                 if cut_edges:
-                    print('cutting')
                     new_constr = tsp_lp.addConstr(
                         sum(1*x[i] for i in cut_edges) >= 2
                     )
@@ -212,6 +189,7 @@ while True:
         x = tsp_lp.X
         obj = tsp_lp.ObjVal
 
+    constraint_numbers.append(len(constraint_binder))
     tsp_lp.remove(constraint_binder)
     tsp_lp.update()
 
@@ -222,25 +200,27 @@ while True:
     branch: we have a non-integral solution with no subtours. Add two subproblems to the queue.
     """
 
-    print('node done. status:', node_status)
-    if node_status.startswith('prune'):
-        print tsp_lp.Status
+    print('node done. status: {}'.format(node_status))
+    if ('integral' in node_status and 'feasible' in node_status) or 'prune' in node_status:
+        fractional_parking = -1
+        sub_lp_parking = []
     if 'integral' in node_status and 'feasible' in node_status:
         if obj <= upper_bound:
             upper_bound = obj   
             x_best = x
-            print upper_bound
+            print obj
+            print sub_lp
             for j in range(len(subprob_queue)):
                 if subprob_queue[j][0] != None:
                     if subprob_queue[j][0] > upper_bound:
+                        print('removing :{}'.format(j))
                         subprob_queue.remove(j)
+                        print('removed subprob {}'.format(subprob_queue[j]))
 
     elif 'branch' in node_status:
+        print('hello')
         #Put two subproblems in the queue. We use the index that's closest to 0.5. 
         #We check the list to see if the next branch point has already been decided.
-        print branch_choice_list
-        print len(branch_choice_list)
-        print len(sub_lp)
         if len(sub_lp) - 1 < len(branch_choice_list):
             index_for_split = branch_choice_list[len(sub_lp) - 1]
         #If not, we use the index that's closest to 0.5, and add it to the list. 
@@ -254,6 +234,8 @@ while True:
             branch_choice_list.append(index_for_split)
         zero_branch = sub_lp + [[index_for_split, 0]] 
         one_branch = sub_lp + [[index_for_split, 1]] 
+        print zero_branch
+        print one_branch
         #Each new subprob will have all the boundary constraints of its parent, plus the new boundary constraint.
         subprob_queue.appendleft(one_branch)
         subprob_queue.appendleft(zero_branch)
@@ -265,10 +247,12 @@ while True:
         break
 
 
-# TODO: print outputs
+# print outputs
 
-print x_best
-print upper_bound
-
+print ('Solution: {}'.format(x_best))
+print ('Initial UB: {}'.format(initial_upper_bound))
+print ('Weight of the cycle: {}'.format(upper_bound))
+print ('Nodes visited: {}'.format(nodes_visited))
 end = time.time()
+print ('Constraints Added: {}'.format(constraint_numbers))
 print('\nTime = {} seconds'.format(end - start))
