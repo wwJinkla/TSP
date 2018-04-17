@@ -11,40 +11,57 @@ import sys
 import time
 import numpy as np
 from collections import deque
+from gurobipy import *
 
-import gurobipy as gurobi
+sys.path.insert(0, 'Users/alexteich/Documents/GitHub/CAAM_571')
+from my_utils import *
 
+import myNN
 import mySECs
 
 
 start = time.time()
 
-#TODO:  parse input data.
+#get input
+input_data = get_single_data('berlin52.txt')
 
-#TODO:  create graph data-structures.
-g = Graph....
+#create graph data-structures
+(g, g_inv, optimal, n, m) = make_graph(input_data)
 
-#TODO: get upper bound from heuristics
-upper_bound = ...
+#get upper bound from heuristics
+(visited, upper_bound) = myNN.myNN(g)
 
-#TODO: decide where to place the "initialize" 
-# function (as a utility?) and what inputs we
-# call "initialize" with.
-tsp_lp = initialize_tsp_lp(...)
 
-x_best = None
+
+#initialize the lp
+tsp_lp = initialize_tsp_lp(g, g_inv, optimal, n, m)
+
+x_best = np.zeros(m)
+
+
+
+for i in range(len(visited) - 1):
+    index = g[visited[i]][visited[i+1]][1]
+    x_best[index] = 1
+
+
+
+# index = g[len(visited)-1][0]
+# x_best[index] = 1
+
 #this queue stores the upper and lower bounds of each variable. 
 subprob_queue = deque([[[]]])
+branch_choice_list = []
 obj = np.inf
     
 while True:
     sub_lp = subprob_queue.popleft()
     
     """
-    We apply the constraints from sub_lp on top of init_lp. 
-    Solve the subproblem.
-    Look for cuts and apply them.
-    Solve again.
+    We apply the constraints from sub_lp to tsp_lp,
+    Solve the subproblem,
+    Look for cuts and apply them,
+    Solve again,
     Clear out the cuts from the model.
     """
     #retrieve list of variables in the model
@@ -53,18 +70,28 @@ while True:
     #these are actually introduced as boundaries rather than constraints.
     #they are stored in sub_lp, and here, we introduce them to tsp_lp.
     
-    lb_for_sub_lp = 0.0
-    ub_for_sub_lp = 1.0
+    lb_for_sub_lp = np.zeros(m)
+    ub_for_sub_lp = np.zeros(m)
 
     for constraint in sub_lp:
         #constraint[0] is the index, constraint[1] is the prescribed value
         #we want to create two vectors and then update the model
-        if constraint[1] == 0
-            ub_for_sub_lp[constraint[0]] = 0.0
-        elif constraint[1] == 1
-            lb_for_sub_lp[constraint[0]] = 1.0
-    tsp_lp.setAttr("LB", lb_for_sub_lp)
-    tsp_lp.setAttr("UB", ub_for_sub_lp)
+        if sub_lp:
+        	continue
+        if constraint[1] == 0:       	
+            x[constraint[0]].ub = 0
+        elif constraint[1] == 1:
+            x[constraint[0]].lb = 1
+
+
+    # for v in tsp_lp.getVars()[lb_for_sub_lp]:
+    # 	v.lb = 1
+    # for v in tsp_lp.getVars()[ub_for_sub_lp]:
+    # 	v.ub = 0
+
+    # tsp_lp.setAttr("lb", lb_for_sub_lp)
+    # tsp_lp.setAttr("ub", ub_for_sub_lp)
+    
     tsp_lp.update()
     tsp_lp.optimize()
 
@@ -78,24 +105,35 @@ while True:
     else:
         while True:
             #try to find a cut from the cut factory 
-            cut_edges = mySECs.SECs(x, G_inv)
+            cut_edges = mySECs.SECs(tsp_lp.X, g_inv)
             if cut_edges:
                 new_constr = tsp_lp.addConstr(
-                    sum(1*x[i] for i in cut_edges) <= 2
+                    sum(1*x[i] for i in cut_edges) >= 2
                 )
                 constraint_binder.append(new_constr)
                 tsp_lp.update()
                 tsp_lp.optimize()
-            else 
+            else:
                 break
         
         intstatus = 0
-        for i in range(len(tsp_lp.X))
-            intstatus += np.isclose([tsp_lp.X[i]], [0])[0] + np.isclose([tsp_lp.X[i]], [1])[0]
-        if intstatus == len(tsp_lp.X) 
+        zero_test = np.zeros(len(tsp_lp.X))
+        ones_test = np.ones(len(tsp_lp.X))
+        intstatus = np.zeros(len(tsp_lp.X))
+
+        intstatus = np.isclose(tsp_lp.X, zero_test) + np.isclose(tsp_lp.X, ones_test)
+        if sum(intstatus) == len(tsp_lp.X):
             node_status = 'integral'
-        else 
+        else:
             node_status = 'branch'
+
+
+        # for i in range(len(tsp_lp.X)):
+        #     intstatus += (np.isclose([tsp_lp.X[i]], [0])[0] + np.isclose([tsp_lp.X[i]], [1])[0])
+        # if intstatus == len(tsp_lp.X):
+        #     node_status = 'integral'
+        # else 
+        #     node_status = 'branch'
             
     x = tsp_lp.X
     obj = tsp_lp.ObjVal
@@ -110,25 +148,35 @@ while True:
     branch: we have a non-integral solution with no subtours. Add two subproblems to the queue.
     """
 
-    if node_status == 'integral'
-        if obj <= upper_bound
+    if node_status == 'integral':
+        if obj <= upper_bound:
             upper_bound = obj   
             x_best = x
-    elif node_status == 'branch'
-        #Put two subproblems in the queue. We use the index that's closest to 0.5. 
-        arr = np.abs(x - 0.5)
-        index_for_split = arr.argmin()
+    elif node_status == 'branch':
+        #Put two subproblems in the queue. 
+        #We check the list to see if the next branch point has already been decided.
+        if len(sub_lp) < len(branch_choice_list):
+            index_for_split = branch_choice_list[len(sub_lp)]
+        #If not, we use the index that's closest to 0.5, and add it to the list. 
+        else:
+            arr = np.abs(x - 0.5)
+            #ensure that an index already on the list (already used) will not be used again.
+            for b in branch_choice_list
+                arr[b] += 1
+            index_for_split = arr.argmin()
+            branch_choice_list.append(index_for_split)
         zero_branch = sub_lp + [index_for_split, 0] 
         one_branch = sub_lp + [index_for_split, 1] 
         #Each new subprob will have all the boundary constraints of its parent, plus the new boundary constraint.
         subprob_queue.extend([zero_branch, one_branch])
 
         
-    if not sub_problem_queue 
+    if not subprob_queue:
         break
 
 # TODO: print outputs
 
+print tsp_lp.X
 
 end = time.time()
 print('\nTime = {} seconds'.format(end - start))
