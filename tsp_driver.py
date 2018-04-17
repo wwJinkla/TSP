@@ -59,8 +59,7 @@ obj = np.inf
     
 while True:
     sub_lp = subprob_queue.popleft()
-    branch_choice_list = []
-
+    
     """
     We apply the constraints from sub_lp to tsp_lp,
     Solve the subproblem,
@@ -165,24 +164,14 @@ while True:
             x_best = x
     elif node_status == 'branch':
         #Put two subproblems in the queue. We use the index that's closest to 0.5. 
-        #We check the list to see if the next branch point has already been decided.
-        if len(sub_lp) < len(branch_choice_list):
-            index_for_split = branch_choice_list[len(sub_lp)]
-        #If not, we use the index that's closest to 0.5, and add it to the list. 
-        else:
-            arr = np.abs(x - 0.5)
-            #ensure that an index already on the list (already used) will not be used again.
-            for b in branch_choice_list
-                arr[b] += 1
-            index_for_split = arr.argmin()
-            branch_choice_list.append(index_for_split)
+        arr = np.abs([num - 0.5 for num in x])
+        index_for_split = arr.argmin()
         zero_branch = sub_lp + [index_for_split, 0] 
         one_branch = sub_lp + [index_for_split, 1] 
         #Each new subprob will have all the boundary constraints of its parent, plus the new boundary constraint.
         subprob_queue.extend([zero_branch, one_branch])
 
-
-
+        
     if not subprob_queue:
         break
 

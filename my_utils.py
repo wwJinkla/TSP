@@ -1,6 +1,7 @@
 import os
 from collections import defaultdict
-
+import numpy as np
+from gurobipy import *
 # ww17
 # Last updated: 04/15/2018
 
@@ -41,15 +42,15 @@ def get_all_data():
 	    for fname in filenames:
 	    	if fname[-3:] == "txt":
 				print "Reading file: " + fname
-	    	current_txt = []
-	    	f = open(fname,"r")
-	    	f1 = f.readlines()
-	    	for line in f1:
-	    		line = line.split()
-	    		if line:
-	    			line = [int(i) for i in line]
-	    			current_txt.append(line)
-	    	all_files[fname] = current_txt
+				current_txt = []
+				f = open(fname,"r")
+				f1 = f.readlines()
+				for line in f1:
+					line = line.split()
+					if line:
+						line = [int(i) for i in line]
+						current_txt.append(line)
+				all_files[fname] = current_txt
 
 	return all_files
 
@@ -128,7 +129,7 @@ def make_graph(data):
 			graph_inv[edge_index] = weight, (u,v)
 		edge_index += 1
 
-	return graph, graph_inv, optimal
+	return graph, graph_inv, optimal, n, m
 
 
 # # Testing get_single_data and make_graph
@@ -142,9 +143,6 @@ def make_graph(data):
 
 # print("weight of edge 1:", test_graph_inv_1[1][0])
 # print("nodes of edge 1:", test_graph_inv_1[1][1])
-
-
-
 
 
 def vector2graph(g_inv,x):
@@ -176,3 +174,52 @@ def vector2graph(g_inv,x):
 
 # test_x_1 = [1.0/2, 0, 1.0/2, 0, 1.0/2, 1]
 # print vector2graph(test_graph_inv_1,test_x_1)
+
+
+
+def initialize_tsp_lp(graph, graph_inv, optimal, n, m):
+	#Solve an LP relaxation of TSP
+	#Input: 
+	#		graph
+	#Output:
+	#		x_star: 
+
+	#Create LP model
+	tsp_lp = Model("tsp_lp")
+
+	c_min = -1 #minimal cost associated wit this LP relaxation
+
+	#x_star = np.zeros(m) #initialize solution
+
+	# n = graph[3] #Number of nodes in graph
+	x = tsp_lp.addVars(m, lb=0.0, ub=1.0, vtype=GRB.CONTINUOUS) #, name="x")
+	#x_reference  = x.getVarByName("x")
+
+
+	for u in range(0, n):
+		constr_edges = []
+		for v in range (0, n):
+			twople_w_index = None
+			if u != v:      
+				twople_w_index = graph[u][v]
+			if twople_w_index:
+				constr_edges.append(twople_w_index[1])
+		tsp_lp.addConstr( sum(1*x[i] for i in constr_edges) == 2)
+     
+	# m = graph[4] #Number of edges in graph
+	
+	weights = graph_inv.values()
+	weights = [x[0] for x in weights]
+
+	tsp_lp.update()	
+
+
+	# for edge in graph_inv:
+	# 	weights[edge] = graph_inv[edge][0]
+	tsp_lp.setObjective(np.dot(tsp_lp.getVars(), np.transpose(weights)))
+	#tsp_lp.setObjective(tsp_lp.x.prod(weights), GRB.MINIMIZE)
+	tsp_lp.write('model.lp')
+
+	tsp_lp.update()
+	
+	return tsp_lp

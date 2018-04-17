@@ -54,13 +54,13 @@ def myNN(graph):
 	return visited, total_weight
 
 
-# Test
-all_data = my_utils.get_all_data()
+## Test
+# all_data = my_utils.get_all_data()
 
-data_0 = all_data['ulysses22.txt']
-graph_0 = my_utils.make_graph(data_0)[0]
-print 'test0:', myNN(graph_0)
+# data_0 = all_data['ulysses22.txt']
+# graph_0 = my_utils.make_graph(data_0)[0]
+# print 'test0:', myNN(graph_0)
 
-data_1 = all_data['st70.txt']
-graph_1 = my_utils.make_graph(data_1)[0]
-print 'test1:', myNN(graph_1)
+# data_1 = all_data['st70.txt']
+# graph_1 = my_utils.make_graph(data_1)[0]
+# print 'test1:', myNN(graph_1)
