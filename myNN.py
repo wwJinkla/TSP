@@ -2,24 +2,25 @@ import my_utils
 import numpy as np
 
 # ww17
-# 04/11/2018
+# Last updated 04/15/2018
 
-def myNN(data):
-	'''
+def myNN(graph):
+	"""
 	Implementation of nearest neighbor heuristics: https://web.tuke.sk/fei-cit/butka/hop/htsp.pdf 
 	Input:
-		data: a list of lists. 
-			data[0] gives [#nodes #edges]
-			data[1:] gives [node1 node2 weight]
-			data[-1] potentially gives the minimum weight
+		graoh: a dictionary of dictionary. 
+			graph[u][v][0] = weight of (u,v)
+			graph[u][v][1] = edge index of (u,v)
 	Output:
-		visited: a list of visited nodes that form the tour.
-		optimal: intger. Total weight of the tour.
-	'''
+		visited: a list.
+			A list of visited nodes that form the tour.
+		total_weight: intger. 
+			Total weight of the tour.
+	"""
 	
-	graph = my_utils.make_graph(data)[0]
-	n = data[0][0] # number of nodes
-	m = data[0][1] # number of edges
+	#graph = my_utils.make_graph(data)[0]
+	n = len(graph.keys()) # number of nodes
+	#m = data[0][1] # number of edges
 
 	nodes = range(n)
 	visited = []
@@ -33,14 +34,13 @@ def myNN(data):
 	visited.append(current_node)
 	while set(visited) != set(nodes):
 		neighbors = graph[current_node]
-
 		# search for the nearest unvisited neighbor nn 
 		w = float("inf")
 		for v in neighbors:
 			if v not in visited:
-				if neighbors[v] < w:
+				if neighbors[v][0] < w:
 					nn = v
-					w = neighbors[nn]
+					w = neighbors[nn][0]
 
 		# update visited and total weight of the tour
 		visited.append(nn)
@@ -49,16 +49,18 @@ def myNN(data):
 
 	# return to start node
 	visited.append(start_node)
-	total_weight += graph[nn][start_node]
+	total_weight += graph[nn][start_node][0]
 
 	return visited, total_weight
 
 
-# Test
-all_data = my_utils.get_all_data()
+## Test
+# all_data = my_utils.get_all_data()
 
-data_0 = all_data['ulysses22.txt']
-print 'test0:', myNN(data_0)
+# data_0 = all_data['ulysses22.txt']
+# graph_0 = my_utils.make_graph(data_0)[0]
+# print 'test0:', myNN(graph_0)
 
-data_1 = all_data['st70.txt']
-print 'test1:', myNN(data_1)
+# data_1 = all_data['st70.txt']
+# graph_1 = my_utils.make_graph(data_1)[0]
+# print 'test1:', myNN(graph_1)

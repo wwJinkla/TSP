@@ -25,7 +25,7 @@ start = time.time()
 
 
 #get input
-input_data = get_single_data('st70.txt')
+input_data = get_single_data('att48.txt')
 
 #create graph data-structures
 (g, g_inv, optimal, n, m) = make_graph(input_data)
@@ -198,6 +198,7 @@ while True:
         if obj <= upper_bound:
             upper_bound = obj   
             x_best = x
+            print upper_bound
     elif node_status == 'branch':
         #Put two subproblems in the queue. We use the index that's closest to 0.5. 
         #We check the list to see if the next branch point has already been decided.
@@ -231,7 +232,7 @@ while True:
 # TODO: print outputs
 
 print x_best
-print obj
+print upper_bound
 
 end = time.time()
 print('\nTime = {} seconds'.format(end - start))
