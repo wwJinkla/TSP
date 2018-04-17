@@ -25,7 +25,7 @@ start = time.time()
 
 
 #get input
-input_data = get_single_data('ulysses22.txt')
+input_data = get_single_data('att48.txt')
 
 #create graph data-structures
 (g, g_inv, optimal, n, m) = make_graph(input_data)
