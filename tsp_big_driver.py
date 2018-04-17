@@ -25,7 +25,7 @@ start = time.time()
 
 
 #get input
-input_data = get_single_data('hk48.txt')
+input_data = get_single_data('st70.txt')
 
 #create graph data-structures
 (g, g_inv, optimal, n, m) = make_graph(input_data)
@@ -54,6 +54,8 @@ for i in range(len(visited) - 1):
 subprob_queue = deque([[[]]])
 branch_choice_list = []
 obj = np.inf
+sub_lp_parking = []
+fractional_parking = -1
     
 while True:
     sub_lp = subprob_queue.popleft()
@@ -81,8 +83,10 @@ while True:
     print sub_lp
     for constraint in sub_lp:
     	print constraint
-        if len(constraint) == 0:
+        if isinstance(constraint, float):
     		continue
+        elif len(constraint) == 0:
+            continue
         #constraint[0] is the index, constraint[1] is the prescribed value
         #we want to create two vectors and then update the model
         if constraint[1] == 0:
@@ -121,6 +125,28 @@ while True:
     
     tsp_lp.optimize()
 
+    sub_lp[0] = tsp_lp.ObjVal    
+
+    if(len(sub_lp) > 1):
+        x_try = tsp_lp.X
+        x_try = [xi - 0.5 for xi in x_try]
+        x_try = np.abs(x_try)
+        fractional = sum(x_try)
+        #the lower this sum, the more attractive the subproblem is.
+        print sub_lp[-1]
+        if sub_lp[-1][1] == 0:
+            sub_lp_parking = sub_lp
+            fractional_parking = fractional
+        else:
+            if(fractional_parking != -1) and len(sub_lp) == len(sub_lp_parking):
+                if(fractional >= fractional_parking):
+                    sub_lp_leaving = sub_lp
+                    subprob_queue.append(sub_lp_leaving)
+                    sub_lp = sub_lp_parking
+                else:
+                    subprob_queue.append(sub_lp_parking)
+                fractional_parking = -1
+                sub_lp_parking = []
 
 
     if(tsp_lp.Status == 3):
@@ -135,6 +161,7 @@ while True:
         if obj_val > upper_bound: 
             node_status = 'pruneB'
         else:
+            cut_counter = 0
             while True:
                 #try to find a cut from the cut factory 
                 cut_edges = mySECs.SECs(tsp_lp.X, g_inv)
@@ -146,6 +173,9 @@ while True:
                     constraint_binder.append(new_constr)
                     tsp_lp.update()
                     tsp_lp.optimize()
+                    cut_counter += 1
+                    if cut_counter >= 50:
+                        break
                     if(tsp_lp.Status == 3):
                         node_status = 'pruneC'
                         break
@@ -155,6 +185,7 @@ while True:
                             node_status = 'pruneD'
                             break
                 else:
+                    node_status += 'feasible'
                     break
 
             if node_status.startswith('prune') == False:
@@ -165,9 +196,9 @@ while True:
 
                 intstatus = np.isclose(tsp_lp.X, zero_test) + np.isclose(tsp_lp.X, ones_test)
                 if sum(intstatus) == len(tsp_lp.X):
-                    node_status = 'integral'
+                    node_status += 'integral'
                 else:
-                    node_status = 'branch'
+                    node_status += 'branch'
 
 
             # for i in range(len(tsp_lp.X)):
@@ -194,12 +225,17 @@ while True:
     print('node done. status:', node_status)
     if node_status.startswith('prune'):
         print tsp_lp.Status
-    if node_status == 'integral':
+    if 'integral' in node_status and 'feasible' in node_status:
         if obj <= upper_bound:
             upper_bound = obj   
             x_best = x
             print upper_bound
-    elif node_status == 'branch':
+            for j in range(len(subprob_queue)):
+                if subprob_queue[j][0] != None:
+                    if subprob_queue[j][0] > upper_bound:
+                        subprob_queue.remove(j)
+
+    elif 'branch' in node_status:
         #Put two subproblems in the queue. We use the index that's closest to 0.5. 
         #We check the list to see if the next branch point has already been decided.
         print branch_choice_list
@@ -219,8 +255,8 @@ while True:
         zero_branch = sub_lp + [[index_for_split, 0]] 
         one_branch = sub_lp + [[index_for_split, 1]] 
         #Each new subprob will have all the boundary constraints of its parent, plus the new boundary constraint.
-        subprob_queue.append(zero_branch)
-        subprob_queue.append(one_branch)
+        subprob_queue.appendleft(one_branch)
+        subprob_queue.appendleft(zero_branch)
         
 
 
