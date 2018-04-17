@@ -2,6 +2,7 @@ import my_utils
 from myNN import myNN
 import numpy as np
 import copy
+from decimal import *
 
 # ww17
 # Last updated: 04/15/2018
@@ -39,10 +40,10 @@ def SECs(x,G_inv):
 	a = np.random.randint(len(inducedg))
 	min_cut, min_w = MinCut(inducedg,a)
 
-
+	# print('from mySECs, minw', min_w)
 	SECs = []
 	# Generate SECs if the weight of the min cut is smaller than 2 
-	if min_w < 2:
+	if min_w < 2: #min_w < 2
 		for u in min_cut:
 			for v in inducedg:
 				if v not in min_cut:
@@ -54,7 +55,6 @@ def SECs(x,G_inv):
 
 	if set(min_cut) == set(G_inv.keys()):
 		SECs = []
-
 	
 	return SECs
 

@@ -52,7 +52,7 @@ for i in range(len(visited) - 1):
 
 
 #this queue stores the upper and lower bounds of each variable. 
-subprob_queue = deque([[]])
+subprob_queue = deque([[[]]])
 obj = np.inf
 	
 while True:
@@ -76,23 +76,23 @@ while True:
 	ub_for_sub_lp = np.zeros(m)
 
 
-	#print sub_lp
-	if sub_lp:
-		id = sub_lp[0]
-		if sub_lp[1] == 0:
-			x[id].ub = 0
-		elif sub_lp[1] == 1:
-			x[id].lb = 1
+	# #print sub_lp
+	# if sub_lp:
+	# 	id = sub_lp[0]
+	# 	if sub_lp[1] == 0:
+	# 		x[id].ub = 0
+	# 	elif sub_lp[1] == 1:
+	# 		x[id].lb = 1
 
-	# for constraint in sub_lp:
-	# 	if len(constraint) == 0:
-	# 		break
-	# 	#constraint[0] is the index, constraint[1] is the prescribed value
-	# 	#we want to create two vectors and then update the model
-	# 	if constraint[1] == 0:       	
-	# 		x[constraint[0]].ub = 0
-	# 	elif constraint[1] == 1:
-	# 		x[constraint[0]].lb = 1
+	for constraint in sub_lp:
+		if len(constraint) == 0:
+			break
+		#constraint[0] is the index, constraint[1] is the prescribed value
+		#we want to create two vectors and then update the model
+		if constraint[1] == 0:       	
+			x[constraint[0]].ub = 0
+		elif constraint[1] == 1:
+			x[constraint[0]].lb = 1
 
 
 	# for v in tsp_lp.getVars()[lb_for_sub_lp]:
@@ -198,8 +198,8 @@ while True:
 			
 			arr = np.abs([num - 0.5 for num in x])
 			index_for_split = arr.argmin()
-			zero_branch = [index_for_split, 0] 
-			one_branch = [index_for_split, 1] 
+			zero_branch = sub_lp + [index_for_split, 0] 
+			one_branch = sub_lp + [index_for_split, 1] 
 			#Each new subprob will have all the boundary constraints of its parent, plus the new boundary constraint.
 			subprob_queue.append(zero_branch)
 			subprob_queue.append(one_branch)
