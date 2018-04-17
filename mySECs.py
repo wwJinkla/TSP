@@ -57,7 +57,6 @@ def SECs(x,G_inv):
 
 	
 	return SECs
-	
 
 def MinCutPhase(G,a):
 	"""
@@ -171,10 +170,6 @@ def mergeVertices(G,u,v):
 
 	# find out the common neighbors of u and v
 	common_neighbors = [n for n in u_neighbors.keys() if n in v_neighbors.keys()]
-<<<<<<< HEAD
-
-=======
->>>>>>> master
 	
 	# delete u,v as neighbors of other nodes
 	for node in u_neighbors:
@@ -187,10 +182,7 @@ def mergeVertices(G,u,v):
 	# delete u,v themselves		
 	del G[u]
 	del G[v]
-<<<<<<< HEAD
-=======
 	
->>>>>>> master
 
 	# convert u or v into frozenset if u or v is integer
 	if type(u) == int:
@@ -259,22 +251,14 @@ def MinCut(G,a):
 
 	return min_cut, min_w
 
-# # Unit test for MinCut
+# Unit test for MinCut
 # print MinCut(graph_0,2)
 
-<<<<<<< HEAD
-# # More Unit test for Min Cut
-=======
->>>>>>> master
 # data_1 = all_data['WeiTest.txt']
 # graph_1 = my_utils.make_graph(data_1)[0]
 # print("Wei's test",  graph_1)
 # print("Min cut:", MinCut(graph_1,1))
 
-<<<<<<< HEAD
-# # Unit test for SECs
-=======
->>>>>>> master
 # g_inv_1 =  my_utils.make_graph(data_1)[1]
 # x = [0,1.0/2,1,1.0/3,1.0/4,1]
 # graph_2 = my_utils.vector2graph(g_inv_1,x)
