@@ -1,6 +1,7 @@
 import my_utils
 from myNN import myNN
 import numpy as np
+import copy
 
 # ww17
 # Last updated: 04/15/2018
@@ -9,9 +10,9 @@ import numpy as np
 
 
 #Get the test graph 
-all_data = my_utils.get_all_data()
-data_0 = all_data['ulysses22.txt']
-graph_0 = my_utils.make_graph(data_0)[0]
+#all_data = my_utils.get_all_data()
+#data_0 = all_data['ulysses22.txt']
+#graph_0 = my_utils.make_graph(data_0)[0]
 #graph_inv_0 = my_utils.make_graph(data_0)[1]
 #print len(graph_inv_0)
 #print("test graph came from the paper",  graph_0)
@@ -36,20 +37,25 @@ def SECs(x,G_inv):
 	
 	# find the minimum cut on the induced graph
 
-
 	a = np.random.randint(len(inducedg))
 	min_cut, min_w = MinCut(inducedg,a)
 
 
 
 	SECs = []
+	#print('min cut', min_cut)
+	#print('min w', min_w)
+	#print('inducedg', inducedg)
 
-
+	#print('inducedg', inducedg)
 	# Generate SECs if the weight of the min cut is smaller than 2 
 	if min_w < 2:
 		for u in min_cut:
 			for v in inducedg:
 				if v not in min_cut:
+					#print('u',u)
+					#print('v',v)
+					#print('min_cut',min_cut)
 					SECs.append(inducedg[u][v][1])
 
 	# Do not generate SEC if the cut is either empty or the entire graph
@@ -81,12 +87,9 @@ def MinCutPhase(G,a):
 	while flag == 0:
 		# find the mostly connected vertex to A
 		v = mostlyConnected(G,A)
-		print('v',v)
 		if v == None:
 			break
 		A.append(v)
-		print('A',A)
-
 		
 		if set(A) == set(V):
 			flag = 1
@@ -94,9 +97,9 @@ def MinCutPhase(G,a):
 
 	# cut the last added node from the rest of the graph. Note that this node could be either an integer representing
 	# a single node, or it could be a frozenset that represents a set of nodes.
+	#print A
 	cut_node = A[-1]
-	print('G', G)
-	print cut_node
+
 	# compute the cut weight
 	w = 0
 	for n in G[cut_node]:
@@ -146,9 +149,9 @@ def mostlyConnected(G, A):
 			for u in A:
 				if u in G[v]:
 					w += G[u][v][0]
-		if w > sum_weight:
-			sum_weight = w
-			mc_v = v
+			if w > sum_weight:
+				sum_weight = w
+				mc_v = v
 
 	return mc_v
 
@@ -247,8 +250,7 @@ def MinCut(G,a):
 	min_w = float('inf')
 
 	# make a shallow copy of G so that G does not change
-	GG = G.copy()
-
+	GG = copy.deepcopy(G)
 
 
 	# perform MinCutPhase
